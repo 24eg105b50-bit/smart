@@ -1,35 +1,25 @@
 # ==============================================================================
-# ShopSphere Campus - Backend Dockerfile
-# Multi-stage build for Spring Boot 3.3.4 (Java 21)
+# ShopSphere Campus - Lightweight Single-Stage Backend Dockerfile
+# Optimized for Railway, Render & Cloud Platforms
 # ==============================================================================
+FROM eclipse-temurin:21-jdk-alpine
 
-# Stage 1: Build JAR using Maven on Temurin JDK 21
-FROM eclipse-temurin:21-jdk-alpine AS builder
 WORKDIR /app
 
+# Install Maven
 RUN apk add --no-cache maven
 
+# Copy POM and sources
 COPY pom.xml .
 COPY src ./src
+
+# Build JAR directly inside the container
 RUN mvn clean package -DskipTests -B
 
-# Stage 2: Minimal Production JRE Image
-FROM eclipse-temurin:21-jre-alpine
-WORKDIR /app
-
-# Create non-root application user for container security
-RUN addgroup -S shopsphere && adduser -S shopsphere -G shopsphere
-
-# Copy compiled jar with explicit ownership directly
-COPY --from=builder --chown=shopsphere:shopsphere /app/target/app.jar /app/app.jar
-
-USER shopsphere
-
-
-# Expose default Spring Boot application port (Railway sets $PORT dynamically)
+# Expose dynamic HTTP port
 EXPOSE 8080
 
-# Production JVM ergonomics for container environments
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-8080} -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:-default} -jar app.jar"]
+# Launch Spring Boot using wildcard match in target directory
+CMD ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-8080} -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:-default} -jar target/*.jar"]
