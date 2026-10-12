@@ -1,0 +1,28 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:shopsphere_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+    open-in-view: false
+  cache:
+    type: none
+
+app:
+  jwt:
+    secret: ShopSphereCampusSuperSecureSecretKeyForJwtAuthenticationAU2024AU2026EnterpriseKey!
+    expiration-ms: 86400000
+  ai:
+    enabled: true
+    provider: local
+    api-key: test-key
