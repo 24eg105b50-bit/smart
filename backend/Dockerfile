@@ -7,13 +7,9 @@
 FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
 WORKDIR /app
 
-# Cache dependency download layer
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
-
-# Copy source code and package application (skip tests during container packaging)
 COPY src ./src
-RUN mvn clean package -DskipTests -B
+RUN mvn clean package -DskipTests -Dmaven.wagon.http.retryHandler.count=3 -B
 
 # Stage 2: Minimal Production JRE Image
 FROM eclipse-temurin:21-jre-alpine
@@ -34,4 +30,4 @@ EXPOSE 8080
 # Production JVM ergonomics for container environments
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-8080} -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-8080} -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:-default} -jar app.jar"]
