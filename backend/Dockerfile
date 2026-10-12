@@ -20,12 +20,11 @@ WORKDIR /app
 # Create non-root application user for container security
 RUN addgroup -S shopsphere && adduser -S shopsphere -G shopsphere
 
-# Copy compiled jar from build stage
-COPY --from=builder /app/target/*.jar app.jar
-RUN chown shopsphere:shopsphere app.jar
-
+# Copy compiled jar with explicit ownership directly
+COPY --from=builder --chown=shopsphere:shopsphere /app/target/app.jar /app/app.jar
 
 USER shopsphere
+
 
 # Expose default Spring Boot application port (Railway sets $PORT dynamically)
 EXPOSE 8080
